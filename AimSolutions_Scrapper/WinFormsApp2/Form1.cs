@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Windows.Forms;
 using System.Xml;
 using HtmlAgilityPack;
 using iTextSharp.text.pdf;
@@ -287,7 +288,214 @@ namespace WinFormsApp2
 
         #endregion
 
+        #region Get Brands Function For Text Area
+        public void FetchAndShowDataInTextArea(string url, string CheckName)
+        {
+            try
+            {
+                HtmlAgilityPack.HtmlWeb web = new HtmlAgilityPack.HtmlWeb();
+                HtmlAgilityPack.HtmlDocument doc = web.Load(url);
 
+                List<string> brandsLabelList = new List<string>();
+                string productInfo = "";
+
+                var brandLabelNodes = doc.DocumentNode.SelectNodes("//div[@class='inner-blok']/ul/li");
+                if (brandLabelNodes != null)
+                {
+                    for (int i = 0; i < brandLabelNodes.Count; i++)
+                    {
+                        var liNode = brandLabelNodes[i];
+                        brandsLabelList.Add(liNode.InnerText);
+                    }
+                }
+
+                var productNode = doc.DocumentNode.SelectSingleNode("//h1[@class='woocommerce-products-header__title page-title']");
+                if (productNode != null)
+                {
+                    productInfo = productNode.InnerText;
+                }
+
+                if (brandsLabelList.Count == 0)
+                {
+                    MessageBox.Show("Looks like the link is broken, No data was found.", "Error");
+                }
+                else
+                {
+                    // Concatenate the data to display in the textarea
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("name");
+
+                    for (int i = 0; i < brandsLabelList.Count; i++)
+                    {
+                        sb.AppendLine(brandsLabelList[i]);
+                    }
+
+                    // Set the text of the textarea with the concatenated data
+                    richTextBox1.Text = sb.ToString();
+
+                    MessageBox.Show("Data fetched and displayed successfully in the textarea.", "Success");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message, "Error");
+            }
+        }
+
+        #endregion
+
+        #region  Get Models Function For Text Area
+        public void FetchAndShowDataInTextAreas(string url, string CheckName)
+        {
+            try
+            {
+                HtmlAgilityPack.HtmlWeb web = new HtmlAgilityPack.HtmlWeb();
+                HtmlAgilityPack.HtmlDocument doc = web.Load(url);
+
+                List<string> nameList = new List<string>();
+                List<string> modelList = new List<string>();
+
+                string productInfo = "";
+
+                var nameNodes = doc.DocumentNode.SelectNodes("//div[@class='wc-product-title-container']");
+                if (nameNodes != null)
+                {
+                    foreach (var nameNode in nameNodes)
+                    {
+                        var mainText = nameNode.DescendantsAndSelf()
+                            .Where(n => n.NodeType == HtmlAgilityPack.HtmlNodeType.Text && n.ParentNode.Name != "small")
+                            .Select(n => n.InnerText.Trim())
+                            .FirstOrDefault();
+
+                        if (!string.IsNullOrEmpty(mainText))
+                        {
+                            nameList.Add(mainText);
+                        }
+                    }
+                }
+
+                var modelNodes = doc.DocumentNode.SelectNodes("//div[@class='wc-product-title-container']");
+                if (modelNodes != null)
+                {
+                    foreach (var nameNode in modelNodes)
+                    {
+                        var smallText = nameNode.Descendants("small")
+                            .Select(n => n.InnerText.Trim())
+                            .FirstOrDefault();
+
+                        if (!string.IsNullOrEmpty(smallText))
+                        {
+                            modelList.Add(smallText);
+                        }
+                    }
+                }
+
+                var productNode = doc.DocumentNode.SelectSingleNode("//h1[@class='woocommerce-products-header__title page-title']");
+                if (productNode != null)
+                {
+                    productInfo = productNode.InnerText;
+                }
+
+                if (nameList.Count == 0 || modelList.Count == 0)
+                {
+                    MessageBox.Show("Looks like the link is broken, No data was found.", "Error");
+                }
+                else
+                {
+                    // Combine the data to display in the RichTextBox
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("name, model");
+
+                    for (int i = 0; i < nameList.Count; i++)
+                    {
+                        sb.AppendLine(nameList[i] + ", " + modelList[i]);
+                    }
+
+                    // Set the text of the RichTextBox with the combined data
+                    richTextBox1.Text = sb.ToString();
+
+                    MessageBox.Show("Data fetched and displayed successfully in the RichTextBox.", "Success");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message, "Error");
+            }
+        }
+
+        #endregion
+
+        #region Get Defect Function For Text Area
+        public void FetchAndShowDataInRichTextBox(string url, string CheckName)
+        {
+            try
+            {
+                HtmlAgilityPack.HtmlWeb web = new HtmlAgilityPack.HtmlWeb();
+                HtmlAgilityPack.HtmlDocument doc = web.Load(url);
+
+                List<string> textLabelList = new List<string>();
+                List<string> rawPriceList = new List<string>();
+
+                var textLabelNodes = doc.DocumentNode.SelectNodes("//span[@class='textLabel']");
+                if (textLabelNodes != null)
+                {
+                    foreach (var item in textLabelNodes)
+                    {
+                        textLabelList.Add(item.InnerText);
+                    }
+                }
+
+                var rawPriceNodes = doc.DocumentNode.SelectNodes("//input/@data-raw-price");
+                if (rawPriceNodes != null)
+                {
+                    foreach (var item in rawPriceNodes)
+                    {
+                        var rawPrice = item.GetAttributeValue("data-raw-price", "");
+                        if (string.IsNullOrEmpty(rawPrice))
+                        {
+                            rawPrice = "0";
+                        }
+                        rawPriceList.Add(rawPrice);
+                    }
+                }
+
+                if (textLabelList.Count == 0 || rawPriceList.Count == 0)
+                {
+                    MessageBox.Show("Looks like the link is broken, No data was found.", "Error");
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("Title, Price");
+
+                    for (int i = 0; i < textLabelList.Count; i++)
+                    {
+                        sb.AppendLine(textLabelList[i] + ", " + rawPriceList[i]);
+                    }
+
+                    // Combine the data to display in the RichTextBox
+                    //StringBuilder sb = new StringBuilder();
+
+
+                    //for (int i = 0; i < textLabelList.Count; i++)
+                    //{
+                    //    sb.AppendLine("Title: " + textLabelList[i] + ", Price: " + rawPriceList[i]);
+                    //}
+
+                    // Set the text of the RichTextBox with the combined data
+                    richTextBox1.Text = sb.ToString();
+
+                    MessageBox.Show("Data fetched and displayed successfully in the RichTextBox.", "Success");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message, "Error");
+            }
+        }
+
+
+        #endregion
         private void button1_Click(object sender, EventArgs e)
         {
             //string dateTime = DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss");
@@ -325,6 +533,59 @@ namespace WinFormsApp2
                     FetchAndCreateXmlforDefect(Url_field.Text, CheckName);
                 }
 
+            }
+        }
+
+        private void Model_RadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void genrateData_Click(object sender, EventArgs e)
+        {
+            if (Url_field.Text == "")
+            {
+                MessageBox.Show("Kindly Enter URL First!", "Have a Look", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else if (Url_field.Text != "" && (!Brand_RadioButton.Checked && !Model_RadioButton.Checked && !Defect_RadioButton.Checked))
+            {
+                MessageBox.Show("Select Any Condition!", "Wait Please", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
+            else
+            {
+                var CheckName = "";
+
+                if (Brand_RadioButton.Checked)
+                {
+                    CheckName = "Brand";
+                    Debug.WriteLine(Url_field.Text);
+                    FetchAndShowDataInTextArea(Url_field.Text, CheckName);
+                }
+                else if (Model_RadioButton.Checked)
+                {
+                    CheckName = "Model";
+                    Debug.WriteLine(Url_field.Text);
+                    FetchAndShowDataInTextAreas(Url_field.Text, CheckName);
+                }
+                else if (Defect_RadioButton.Checked)
+                {
+                    CheckName = "Defect";
+                    Debug.WriteLine(Url_field.Text);
+                    FetchAndShowDataInRichTextBox(Url_field.Text, CheckName);
+                }
+
+            }
+        }
+
+        private void copyData_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(richTextBox1.Text))
+            {
+                // Copy the text to the clipboard
+                Clipboard.SetText(richTextBox1.Text);
+
+                // Optionally, you can show a message to indicate that the text has been copied.
+                MessageBox.Show("Text copied to clipboard!");
             }
         }
     }
