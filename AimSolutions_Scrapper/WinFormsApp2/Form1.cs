@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using HtmlAgilityPack;
@@ -354,8 +355,9 @@ namespace WinFormsApp2
 
                 List<string> nameList = new List<string>();
                 List<string> modelList = new List<string>();
-
+                string result= "";
                 string productInfo = "";
+
 
                 var nameNodes = doc.DocumentNode.SelectNodes("//div[@class='wc-product-title-container']");
                 if (nameNodes != null)
@@ -372,6 +374,15 @@ namespace WinFormsApp2
                             nameList.Add(mainText);
                         }
                     }
+                }
+                var brandname = doc.DocumentNode.SelectSingleNode("//nav[@class='woocommerce-breadcrumb']");
+                if (brandname != null)
+                {
+                    var smallText = brandname.InnerText;
+
+                    string input = smallText;
+                    string pattern = @"^[A-Za-z]{12}";
+                    result = Regex.Replace(input, pattern, "");
                 }
 
                 var modelNodes = doc.DocumentNode.SelectNodes("//div[@class='wc-product-title-container']");
@@ -404,11 +415,11 @@ namespace WinFormsApp2
                 {
                     // Combine the data to display in the RichTextBox
                     StringBuilder sb = new StringBuilder();
-                    sb.AppendLine("name, model");
+                    sb.AppendLine("Category, name, model");
 
                     for (int i = 0; i < nameList.Count; i++)
                     {
-                        sb.AppendLine(nameList[i] + ", " + modelList[i]);
+                        sb.AppendLine(result + ", " + nameList[i] + " , " + modelList[i]);
                     }
 
                     // Set the text of the RichTextBox with the combined data
@@ -466,11 +477,11 @@ namespace WinFormsApp2
                 else
                 {
                     StringBuilder sb = new StringBuilder();
-                    sb.AppendLine("Title, Price");
+                    sb.AppendLine("name, Price");
 
                     for (int i = 0; i < textLabelList.Count; i++)
                     {
-                        sb.AppendLine(textLabelList[i] + ", " + rawPriceList[i]);
+                        sb.AppendLine(textLabelList[i] + " | " + rawPriceList[i]);
                     }
 
                     // Combine the data to display in the RichTextBox
